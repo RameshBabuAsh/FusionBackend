@@ -276,6 +276,36 @@ countries = {
 def index(request):
     return HttpResponse("Hello, world. You're at the FPF index.")
 
+def view_all_extra_infos(request):
+    # Retrieve all ExtraInfo objects
+    extra_infos = ExtraInfo.objects.all()
+
+    # Serialize the queryset into a list of dictionaries
+    extra_info_list = [
+        {
+            'id': info.id,
+            'user': info.user.username,
+            'title': info.title,
+            'sex': info.sex,
+            'date_of_birth': info.date_of_birth.isoformat(),  # Convert date to string
+            'user_status': info.user_status,
+            'address': info.address,
+            'phone_no': info.phone_no,
+            'user_type': info.user_type,
+            'department': info.department.name if info.department else None,  # Assuming DepartmentInfo has a name field
+            'profile_picture': info.profile_picture.url if info.profile_picture else None,
+            'about_me': info.about_me,
+            'date_modified': info.date_modified.isoformat() if info.date_modified else None,
+            'age': info.age  # Custom property to get the user's age
+        }
+        for info in extra_infos
+    ]
+
+    print("here", extra_info_list)
+
+    # Return the data as a JSON response
+    return JsonResponse(extra_info_list, safe=False)
+
 # Main profile landing view
 @csrf_exempt
 def profile(request, username=None):
