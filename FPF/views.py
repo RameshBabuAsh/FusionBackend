@@ -318,7 +318,8 @@ def profile(request, username=None):
         user = get_object_or_404(User, username=username)
 
     extra_info = get_object_or_404(ExtraInfo, user=user)
-    pf = extra_info.id
+    pf = extra_info.user_id
+    print("pf", pf)
 
     # Forms and project management data
     project_r = Project_Registration.objects.filter(PI_id=pf).order_by('PI_id__user')
@@ -328,6 +329,7 @@ def profile(request, username=None):
 
     # Research data
     journal = emp_research_papers.objects.filter(pf_no=pf, rtype='Journal').order_by('-year')
+    print(pf, "journal", journal)
     conference = emp_research_papers.objects.filter(pf_no=pf, rtype='Conference').order_by('-year')
     books = emp_published_books.objects.filter(pf_no=pf).order_by('-pyear')
     projects = emp_research_projects.objects.filter(pf_no=pf).order_by('-start_date')
@@ -393,7 +395,7 @@ def profile(request, username=None):
         },
         'year_range': y,
         'personal_info': {
-            'faculty_about': pers.details if pers else None
+            'faculty_about': pers.about if pers else None
         },
         'projects': {
             'registrations': list(project_r.values()),
@@ -488,10 +490,13 @@ def rspc_profile(request):
         return JsonResponse({"x" : "You are not authorized to hit this URL", "status" : 400})
 
 # View for editing persnal Information
+@csrf_exempt
 def persinfo(request):
     if request.method == 'POST':
         try:
-            faculty = get_object_or_404(faculty_about, user = request.user)
+            print("here")
+            faculty = get_object_or_404(faculty_about, user_id = request.POST.get('user_id'))
+            print(faculty.user_id)
             contact = request.POST['contact']
             faculty.contact = contact
             faculty.about = request.POST['about']
@@ -510,290 +515,273 @@ def persinfo(request):
 
 
 # Views for deleting the EIS fields
-def achievementDelete(request, pk):
-    instance = emp_achievement.objects.get(pk=pk)
-    instance.delete()
-    return redirect('/profile/?page14=1')
+@csrf_exempt
+def achievementDelete(request):
+    if request.method == 'POST':
+        try:
+            instance = emp_achievement.objects.get(pk=request.POST['pk'])
+            instance.delete()
+            return JsonResponse({'success': True}, status=200)
+        except emp_achievement.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Achievement not found.'}, status=404)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=400)
 
-def emp_confrence_organisedDelete(request, pk):
-    instance = emp_confrence_organised.objects.get(pk=pk)
+@csrf_exempt
+def emp_confrence_organisedDelete(request):
+    instance = emp_confrence_organised.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect('globals:profile')
+    return JsonResponse({'success': True})
 
-def emp_consymDelete(request, pk, sr, mark):
-    instance = emp_confrence_organised.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = ""
-    if mark== '13':
-        url = '/profile/?page13='+str(page)
+@csrf_exempt
+def emp_consymDelete(request):
+    instance = emp_confrence_organised.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_consultancy_projectsDelete(request, pk,sr,mark):
-    instance = emp_consultancy_projects.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = '/profile/?page5='+str(page)
+@csrf_exempt
+def emp_consultancy_projectsDelete(request):
+    instance = emp_consultancy_projects.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_event_organizedDelete(request, pk, sr, mark):
-    instance = emp_event_organized.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = ""
-    if mark== '12':
-        url = '/profile/?page12='+str(page)
+@csrf_exempt
+def emp_event_organizedDelete(request):
+    instance = emp_event_organized.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_expert_lecturesDelete(request, pk):
-    instance = emp_expert_lectures.objects.get(pk=pk)
+@csrf_exempt
+def emp_expert_lecturesDelete(request):
+    instance = emp_expert_lectures.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect('/profile/?page15=1')
+    return JsonResponse({'success': True})
 
-def emp_keynote_addressDelete(request, pk):
-    instance = emp_keynote_address.objects.get(pk=pk)
+@csrf_exempt
+def emp_keynote_addressDelete(request):
+    instance = emp_keynote_address.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect('eis:profile')
+    return JsonResponse({'success': True})
 
-def emp_mtechphd_thesisDelete(request, pk, sr,mark):
-    instance = emp_mtechphd_thesis.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = ""
-    if mark == 1:
-        url = '/profile/?page8='+str(page)
-    else :
-        url = '/profile/?page9='+str(page)
+@csrf_exempt
+def emp_mtechphd_thesisDelete(request):
+    instance = emp_mtechphd_thesis.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_patentsDelete(request, pk,sr,mark):
-    instance = emp_patents.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = '/profile/?page6='+str(page)
+@csrf_exempt
+def emp_patentsDelete(request):
+    instance = emp_patents.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_published_booksDelete(request, pk, sr, mark):
-    instance = emp_published_books.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = '/profile/?page2='+str(page)
+@csrf_exempt
+def emp_published_booksDelete(request):
+    instance = emp_published_books.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
+@csrf_exempt
+def emp_research_papersDelete(request):
+    instance = emp_research_papers.objects.get(pk=request.POST['pk'])
+    instance.delete()
+    return JsonResponse({'success': True})
 
-def emp_research_papersDelete(request, pk, sr,mark):
-    instance = emp_research_papers.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = ""
-    if mark== '1':
-        url = '/profile/?page='+str(page)
-    if mark== '2':
-        url = '/profile/?page3='+str(page)
+@csrf_exempt
+def emp_research_projectsDelete(request):
+    instance = emp_research_projects.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_research_projectsDelete(request, pk,sr,mark):
-    instance = emp_research_projects.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = '/profile/?page4='+str(page)
+@csrf_exempt
+def emp_session_chairDelete(request):
+    instance = emp_session_chair.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
-def emp_session_chairDelete(request, pk):
-    instance = emp_session_chair.objects.get(pk=pk)
+@csrf_exempt
+def emp_techtransferDelete(request):
+    instance = emp_techtransfer.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect('eis:profile')
+    return JsonResponse({'success': True})
 
-def emp_techtransferDelete(request, pk,sr,mark):
-    instance = emp_techtransfer.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = '/profile/?page7='+str(page)
+@csrf_exempt
+def emp_visitsDelete(request):
+    instance = emp_visits.objects.get(pk=request.POST['pk'])
     instance.delete()
-    return redirect(url)
-
-def emp_visitsDelete(request, pk, sr, mark):
-    instance = emp_visits.objects.get(pk=pk)
-    page = int(sr)//10
-    page = page+1
-    url = ""
-    if mark== '10':
-        url = '/profile/?page10='+str(page)
-    if mark== '11':
-        url = '/profile/?page11='+str(page)
-    instance.delete()
-    return redirect(url)
+    return JsonResponse({'success': True})
 
 
 # Views for inserting fields in EIS
+@csrf_exempt
 def pg_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_mtechphd_thesis()
 
-    if (request.POST.get('pg_id')==None or request.POST.get('pg_id')==""):
-        eis = emp_mtechphd_thesis()
-    else:
-        eis = get_object_or_404(emp_mtechphd_thesis, id=request.POST.get('pg_id'))
-    eis.user = request.user
+    # if (request.POST.get('pg_id')==None or request.POST.get('pg_id')==""):
+    #     eis = emp_mtechphd_thesis()
+    # else:
+    #     eis = get_object_or_404(emp_mtechphd_thesis, id=request.POST.get('pg_id'))
     eis.pf_no = pf
     eis.title = request.POST.get('title')
     eis.s_year = request.POST.get('s_year')
     eis.a_month = request.POST.get('month')
-    eis.supervisors = request.POST.get('sup')
+    eis.supervisors = request.POST.get('supervisors')
     eis.rollno = request.POST.get('roll')
     eis.s_name = request.POST.get('name')
 
     eis.save()
-    return redirect('/profile/?page8=1')
+    return JsonResponse({'success': True})
 
+@csrf_exempt
 def phd_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_mtechphd_thesis()
 
-    if (request.POST.get('phd_id')==None or request.POST.get('phd_id')==""):
-        eis = emp_mtechphd_thesis()
-    else:
-        eis = get_object_or_404(emp_mtechphd_thesis, id=request.POST.get('phd_id'))
-    eis.user = request.user
+    # if (request.POST.get('phd_id')==None or request.POST.get('phd_id')==""):
+    #     eis = emp_mtechphd_thesis()
+    # else:
+    #     eis = get_object_or_404(emp_mtechphd_thesis, id=request.POST.get('phd_id'))
     eis.pf_no = pf
     eis.degree_type = 2
     eis.title = request.POST.get('title')
     eis.s_year = request.POST.get('s_year')
     eis.a_month = request.POST.get('month')
-    eis.supervisors = request.POST.get('sup')
+    eis.supervisors = request.POST.get('supervisors')
     eis.rollno = request.POST.get('roll')
     eis.s_name = request.POST.get('name')
 
     eis.save()
-    return redirect('/profile/?page9=1')
+    return JsonResponse({'success': True})
 
+@csrf_exempt
 def fvisit_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    if request.method=='POST':
+        user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+        pf = user.user_id
 
-    if (request.POST.get('fvisit_id')==None or request.POST.get('fvisit_id')==""):
         eis = emp_visits()
-    else:
-        eis = get_object_or_404(emp_visits, id=request.POST.get('fvisit_id'))
-    eis.user = request.user
+
+        # if (request.POST.get('fvisit_id')==None or request.POST.get('fvisit_id')==""):
+        #     eis = emp_visits()
+        # else:
+        #     eis = get_object_or_404(emp_visits, id=request.POST.get('fvisit_id'))
+        eis.pf_no = pf
+        eis.v_type = 2
+        eis.country = request.POST.get('country').upper()
+        eis.place = request.POST.get('place')
+        eis.purpose = request.POST.get('purpose')
+        try:
+            eis.start_date = datetime.datetime.strptime(request.POST.get('start_date'), "%B %d, %Y") if request.POST.get('start_date') else None
+        except:
+            eis.start_date = datetime.datetime.strptime(request.POST.get('start_date'), "%b. %d, %Y") if request.POST.get('start_date') else None
+        try:
+            eis.end_date = datetime.datetime.strptime(request.POST.get('end_date'), "%B %d, %Y") if request.POST.get('end_date') else None
+        except:
+            eis.end_date = datetime.datetime.strptime(request.POST.get('end_date'), "%b. %d, %Y") if request.POST.get('end_date') else None
+
+        eis.save()
+        return JsonResponse({'x' : 'Your data is saved '})
+
+@csrf_exempt
+def ivisit_insert(request):
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+
+    eis = emp_visits()
+    # if (request.POST.get('ivisit_id')==None or request.POST.get('ivisit_id')==""):
+    #     eis = emp_visits()
+    # else:
+    #     eis = get_object_or_404(emp_visits, id=request.POST.get('ivisit_id'))
     eis.pf_no = pf
-    eis.v_type = 2
-    eis.country = request.POST.get('country').upper()
+    eis.v_type = 1
+    eis.country = "India"
     eis.place = request.POST.get('place')
     eis.purpose = request.POST.get('purpose')
     try:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start_date'), "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('start_date'), "%B %d, %Y") if request.POST.get('start_date2') else None
     except:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start_date'), "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('start_date'), "%b. %d, %Y") if request.POST.get('start_date2') else None
     try:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('end_date'), "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(request.POST.get('end_date'), "%B %d, %Y") if request.POST.get('end_date2') else None
     except:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('end_date'), "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(request.POST.get('end_date'), "%b. %d, %Y") if request.POST.get('end_date2') else None
 
     eis.save()
-    return redirect('/profile/?page10=1')
-
-def ivisit_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
-
-    if (request.POST.get('ivisit_id')==None or request.POST.get('ivisit_id')==""):
-        eis = emp_visits()
-    else:
-        eis = get_object_or_404(emp_visits, id=request.POST.get('ivisit_id'))
-    eis.user = request.user
-    eis.pf_no = pf
-    eis.v_type = 1
-    eis.country = request.POST.get('country2')
-    eis.place = request.POST.get('place2')
-    eis.purpose = request.POST.get('purpose2')
-    try:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start_date2'), "%B %d, %Y")
-    except:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start_date2'), "%b. %d, %Y")
-    try:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('end_date2'), "%B %d, %Y")
-    except:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('end_date2'), "%b. %d, %Y")
-
-    eis.save()
-    return redirect('/profile/?page11=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
 
 #Function to save journal of employee
+@csrf_exempt
 def journal_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    eis = emp_research_papers.objects.create(pf_no = user.id)
-    eis.rtype = 'Journal'
-    eis.authors = request.POST.get('authors')
-    eis.title_paper = request.POST.get('title')
-    try:
-        myfile = request.FILES['journal']
-        fs = FileSystemStorage()
-        filename = fs.save(myfile.name, myfile)
-        uploaded_file_url = fs.url(filename)
-        eis.paper=uploaded_file_url
-    except:
-        eis.paper = None
-
-    eis.co_authors = request.POST.get('co_author')
-    eis.name = request.POST.get('name')
-    eis.doc_id = request.POST.get('doc_id')
-    eis.doc_description = request.POST.get('doc_description')
-    eis.status = request.POST.get('status')
-    eis.reference_number = request.POST.get('ref')
-    eis.is_sci = request.POST.get('sci')
-    volume_no = request.POST.get('volume')
-    page_no = request.POST.get('page')
-    year = request.POST.get('year')
-    if volume_no != '':
-        eis.volume_no=volume_no
-    if page_no != '':
-        eis.page_no=page_no
-    if year != '':
-        eis.year = year
-    if(request.POST.get('doi') != None and request.POST.get('doi') != '' and request.POST.get('doi') != 'None'):
+    if request.method=="POST":
+        user = get_object_or_404(faculty_about, user_id=request.POST['user_id'])
+        print(user.user_id)
+        eis = emp_research_papers.objects.create(pf_no = user.user_id)
+        eis.rtype = 'Journal'
+        eis.authors = request.POST.get('authors')
+        eis.title_paper = request.POST.get('title')
         try:
-            eis.doi = datetime.datetime.strptime(
-                request.POST.get('doi'), "%B %d, %Y")
+            myfile = request.FILES['journal']
+            fs = FileSystemStorage()
+            filename = fs.save(myfile.name, myfile)
+            uploaded_file_url = fs.url(filename)
+            eis.paper=uploaded_file_url
         except:
+            eis.paper = None
+
+        eis.co_authors = request.POST.get('co_author')
+        eis.name = request.POST.get('name')
+        eis.doc_id = request.POST.get('doc_id')
+        eis.doc_description = request.POST.get('doc_description')
+        eis.status = request.POST.get('status')
+        eis.reference_number = request.POST.get('ref')
+        eis.is_sci = request.POST.get('sci')
+        volume_no = request.POST.get('volume')
+        page_no = request.POST.get('page')
+        year = request.POST.get('year')
+        if volume_no != '':
+            eis.volume_no=volume_no
+        if page_no != '':
+            eis.page_no=page_no
+        if year != '':
+            eis.year = year
+        if(request.POST.get('doi') != None and request.POST.get('doi') != '' and request.POST.get('doi') != 'None'):
             try:
                 eis.doi = datetime.datetime.strptime(
-                    request.POST.get('doi'), "%b. %d, %Y")
+                    request.POST.get('doi'), "%B %d, %Y")
             except:
-                eis.doi = request.POST.get('doi')
-    if (request.POST.get('doa') != None and request.POST.get('doa') != '' and request.POST.get('doa') != 'None'):
-        try:
-            eis.date_acceptance = datetime.datetime.strptime(
-                request.POST.get('doa'), "%B %d, %Y")
-        except:
-            eis.date_acceptance = datetime.datetime.strptime(
-                request.POST.get('doa'), "%b. %d, %Y")
-    if (request.POST.get('dop') != None and request.POST.get('dop') != '' and request.POST.get('dop') != 'None'):
-        try:
-            eis.date_publication = datetime.datetime.strptime(
-                request.POST.get('dop'), "%B %d, %Y")
-        except:
-            eis.date_publication = datetime.datetime.strptime(
-                request.POST.get('dop'), "%b. %d, %Y")
-    if (request.POST.get('dos') != None and request.POST.get('dos') != '' and request.POST.get('dos') != 'None'):
-        try:
-            eis.date_submission = datetime.datetime.strptime(
-                request.POST.get('dos'), "%B %d, %Y")
-        except:
-            eis.date_submission = datetime.datetime.strptime(
-                request.POST.get('dos'), "%b. %d, %Y")
-    eis.save()
-    return redirect('/profile/?page=1')
+                try:
+                    eis.doi = datetime.datetime.strptime(
+                        request.POST.get('doi'), "%b. %d, %Y")
+                except:
+                    eis.doi = request.POST.get('doi')
+        if (request.POST.get('doa') != None and request.POST.get('doa') != '' and request.POST.get('doa') != 'None'):
+            try:
+                eis.date_acceptance = datetime.datetime.strptime(
+                    request.POST.get('doa'), "%B %d, %Y")
+            except:
+                eis.date_acceptance = datetime.datetime.strptime(
+                    request.POST.get('doa'), "%b. %d, %Y")
+        if (request.POST.get('dop') != None and request.POST.get('dop') != '' and request.POST.get('dop') != 'None'):
+            try:
+                eis.date_publication = datetime.datetime.strptime(
+                    request.POST.get('dop'), "%B %d, %Y")
+            except:
+                eis.date_publication = datetime.datetime.strptime(
+                    request.POST.get('dop'), "%b. %d, %Y")
+        if (request.POST.get('dos') != None and request.POST.get('dos') != '' and request.POST.get('dos') != 'None'):
+            try:
+                eis.date_submission = datetime.datetime.strptime(
+                    request.POST.get('dos'), "%B %d, %Y")
+            except:
+                eis.date_submission = datetime.datetime.strptime(
+                    request.POST.get('dos'), "%b. %d, %Y")
+        eis.save()
+        return JsonResponse({'x' : 'Your data is saved '})
 
-
+@csrf_exempt
 def editjournal(request):
     eis = emp_research_papers.objects.get(pk=request.POST.get('journalpk'))
     eis.authors = request.POST.get('authors')
@@ -872,151 +860,145 @@ def editjournal(request):
             eis.date_submission = datetime.datetime.strptime(
                 x, "%b. %d, %Y")
     eis.save()
-    page = int(request.POST.get('index'))//10
-    page = page+1
-    url = "/profile/?page="+str(page)
-    return redirect(url)
+    return JsonResponse({'x' : 'Your data is updated '})
 
+@csrf_exempt
 def editforeignvisit(request):
     eis = emp_visits.objects.get(pk=request.POST.get('foreignvisitpk'))
     eis.country = request.POST.get('country')
     eis.place = request.POST.get('place')
     eis.purpose = request.POST.get('purpose')
     x = request.POST.get('start_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     x = request.POST.get('end_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     eis.save()
-    page = int(request.POST.get('index10'))//10
-    page = page+1
-    url = "/profile/?page10="+str(page)
-    return redirect(url)
+    return JsonResponse({'x' : 'Your data is updated '})
 
+@csrf_exempt
 def editindianvisit(request):
     eis = emp_visits.objects.get(pk=request.POST.get('indianvisitpk'))
-    eis.country = request.POST.get('country2')
-    eis.place = request.POST.get('place2')
-    eis.purpose = request.POST.get('purpose2')
-    x = request.POST.get('start_date2')
-    if x[:5] == "Sept." :
+    eis.country = request.POST.get('country')
+    eis.place = request.POST.get('place')
+    eis.purpose = request.POST.get('purpose')
+    x = request.POST.get('start_date')
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
-    x = request.POST.get('end_date2')
-    if x[:5] == "Sept." :
+        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
+    x = request.POST.get('end_date')
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     eis.save()
-    page = int(request.POST.get('index11'))//10
-    page = page+1
-    url = "/profile/?page11="+str(page)
-    return redirect(url)
+    return JsonResponse({'success': True})
 
 
-
+@csrf_exempt
 def conference_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
-    eis = emp_research_papers()
-    eis.user = request.user
-    eis.pf_no = pf
-    eis.rtype = 'Conference'
-    eis.authors = request.POST.get('authors3')
-    eis.co_authors = request.POST.get('co_author3')
-    eis.title_paper = request.POST.get('title3')
-    try:
-        myfile = request.FILES['journal3']
-        fs = FileSystemStorage()
-        filename = fs.save(myfile.name, myfile)
-        uploaded_file_url = fs.url(filename)
-        eis.paper=uploaded_file_url
-    except:
-        logging.warning('Journal file not Uploaded')
-    eis.name = request.POST.get('name3')
-    eis.venue = request.POST.get('venue3')
-    if request.POST.get('page_no3') != '':
-        eis.page_no = request.POST.get('page_no3')
-    if request.POST.get('isbn_no3') != '':
-        eis.isbn_no = request.POST.get('isbn_no3')
-    if request.POST.get('year3') != '':
-        eis.year = request.POST.get('year3')
-    eis.status = request.POST.get('status3')
-    if(request.POST.get('doi3') != None and request.POST.get('doi3') != '' and request.POST.get('doi3') != 'None'):
-        x = request.POST.get('doi3')
-        if x[:-10] == ', midnight':
-            x = x[0:-10]
-        if x[:5] == "Sept." :
-            x = "Sep." + x[5:]
+    if request.method == 'POST':
+        user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+        pf = user.user_id
+        eis = emp_research_papers()
+        eis.pf_no = pf
+        eis.rtype = 'Conference'
+        eis.authors = request.POST.get('author')
+        eis.co_authors = request.POST.get('co_authors')
+        eis.title_paper = request.POST.get('title')
         try:
-            eis.doi = datetime.datetime.strptime(
-                x, "%B %d, %Y")
+            myfile = request.FILES['journal']
+            fs = FileSystemStorage()
+            filename = fs.save(myfile.name, myfile)
+            uploaded_file_url = fs.url(filename)
+            eis.paper=uploaded_file_url
         except:
+            logging.warning('Journal file not Uploaded')
+        eis.name = request.POST.get('name')
+        eis.venue = request.POST.get('venue')
+        if request.POST.get('page_no') != '':
+            eis.page_no = request.POST.get('page_no')
+        if request.POST.get('isbn_no') != '':
+            eis.isbn_no = request.POST.get('isbn_no')
+        if request.POST.get('year') != '':
+            eis.year = request.POST.get('year')
+        eis.status = request.POST.get('status')
+        if(request.POST.get('doi') != None and request.POST.get('doi') != '' and request.POST.get('doi') != 'None'):
+            x = request.POST.get('doi')
+            if x[:-10] == ', midnight':
+                x = x[0:-10]
+            if x[:5] == "Sept." :
+                x = "Sep." + x[5:]
             try:
                 eis.doi = datetime.datetime.strptime(
-                    x, "%b. %d, %Y")
+                    x, "%B %d, %Y")
             except:
-                eis.doi = x
-    if (request.POST.get('doa3') != None and request.POST.get('doa3') != '' and request.POST.get('doa3') != 'None'):
-        x = request.POST.get('doa3')
-        if x[:-10] == ', midnight':
-            x = x[0:-10]
-        if x[:5] == "Sept." :
-            x = "Sep." + x[5:]
-        try:
-            eis.date_acceptance = datetime.datetime.strptime(
-                x, "%B %d, %Y")
-        except:
-            eis.date_acceptance = datetime.datetime.strptime(
-                x, "%b. %d, %Y")
+                try:
+                    eis.doi = datetime.datetime.strptime(
+                        x, "%b. %d, %Y")
+                except:
+                    eis.doi = x
+        if (request.POST.get('doa') != None and request.POST.get('doa') != '' and request.POST.get('doa') != 'None'):
+            x = request.POST.get('doa')
+            if x[:-10] == ', midnight':
+                x = x[0:-10]
+            if x[:5] == "Sept." :
+                x = "Sep." + x[5:]
+            try:
+                eis.date_acceptance = datetime.datetime.strptime(
+                    x, "%B %d, %Y")
+            except:
+                eis.date_acceptance = datetime.datetime.strptime(
+                    x, "%b. %d, %Y")
 
-    if (request.POST.get('dop3') != None and request.POST.get('dop3') != '' and request.POST.get('dop3') != 'None'):
-        x = request.POST.get('dop3')
-        if x[:-10] == ', midnight':
-            x = x[0:-10]
-        if x[:5] == "Sept." :
-            x = "Sep." + x[5:]
-        try:
-            eis.date_publication = datetime.datetime.strptime(
-                x, "%B %d, %Y")
-        except:
-            eis.date_publication = datetime.datetime.strptime(
-                x, "%b. %d, %Y")
-    if (request.POST.get('dos3') != None and request.POST.get('dos3') != '' and request.POST.get('dos3') != 'None'):
-        x = request.POST.get('dos3')
+        if (request.POST.get('dop') != None and request.POST.get('dop') != '' and request.POST.get('dop') != 'None'):
+            x = request.POST.get('dop')
+            if x[:-10] == ', midnight':
+                x = x[0:-10]
+            if x[:5] == "Sept." :
+                x = "Sep." + x[5:]
+            try:
+                eis.date_publication = datetime.datetime.strptime(
+                    x, "%B %d, %Y")
+            except:
+                eis.date_publication = datetime.datetime.strptime(
+                    x, "%b. %d, %Y")
+        if (request.POST.get('dos') != None and request.POST.get('dos') != '' and request.POST.get('dos') != 'None'):
+            x = request.POST.get('dos')
 
-        if x[:5] == "Sept." :
-            x = "Sep." + x[5:]
-        try:
-            eis.date_submission = datetime.datetime.strptime(
-                x, "%B %d, %Y")
-        except:
-            eis.date_submission = datetime.datetime.strptime(
-                x, "%b. %d, %Y")
-    eis.save()
-    return redirect('/profile/?page3=1')
+            if x[:5] == "Sept." :
+                x = "Sep." + x[5:]
+            try:
+                eis.date_submission = datetime.datetime.strptime(
+                    x, "%B %d, %Y")
+            except:
+                eis.date_submission = datetime.datetime.strptime(
+                    x, "%b. %d, %Y")
+        eis.save()
+        return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def editconference(request):
     eis = emp_research_papers.objects.get(pk=request.POST.get('conferencepk'))
-    eis.authors = request.POST.get('authors3')
-    eis.co_authors = request.POST.get('co_author3')
-    eis.title_paper = request.POST.get('title3')
+    eis.authors = request.POST.get('author')
+    eis.co_authors = request.POST.get('co_authors')
+    eis.title_paper = request.POST.get('title')
     try:
-        myfile = request.FILES['journal3']
+        myfile = request.FILES['journal']
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
@@ -1024,16 +1006,16 @@ def editconference(request):
     except:
         logging.warning('Journal File not Uploaded.')
 
-    eis.name = request.POST.get('name3')
-    eis.venue = request.POST.get('venue3')
-    isbn  = request.POST.get('isbn_no3')
+    eis.name = request.POST.get('name')
+    eis.venue = request.POST.get('venue')
+    isbn  = request.POST.get('isbn_no')
 
-    eis.page_no = request.POST.get('page_no3')
+    eis.page_no = request.POST.get('page_no')
 
-    eis.year = request.POST.get('year3')
-    eis.status = request.POST.get('status3')
-    if(request.POST.get('doi3') != None and request.POST.get('doi3') != '' and request.POST.get('doi3') != 'None'):
-        x = request.POST.get('doi3')
+    eis.year = request.POST.get('year')
+    eis.status = request.POST.get('status')
+    if(request.POST.get('doi') != None and request.POST.get('doi') != '' and request.POST.get('doi') != 'None'):
+        x = request.POST.get('doi')
         if x[:5] == "Sept." :
             x = "Sep." + x[5:]
         try:
@@ -1045,8 +1027,8 @@ def editconference(request):
                     x, "%b. %d, %Y")
             except:
                 eis.doi = x
-    if (request.POST.get('doa3') != None and request.POST.get('doa3') != '' and request.POST.get('doa3') != 'None'):
-        x = request.POST.get('doa3')
+    if (request.POST.get('doa') != None and request.POST.get('doa') != '' and request.POST.get('doa') != 'None'):
+        x = request.POST.get('doa')
         if x[:5] == "Sept." :
             x = "Sep." + x[5:]
         try:
@@ -1056,8 +1038,8 @@ def editconference(request):
             eis.date_acceptance = datetime.datetime.strptime(
                 x, "%b. %d, %Y")
 
-    if (request.POST.get('dop3') != None and request.POST.get('dop3') != '' and request.POST.get('dop3') != 'None'):
-        x = request.POST.get('dop3')
+    if (request.POST.get('dop') != None and request.POST.get('dop') != '' and request.POST.get('dop') != 'None'):
+        x = request.POST.get('dop')
         if x[:5] == "Sept." :
             x = "Sep." + x[5:]
         try:
@@ -1066,8 +1048,8 @@ def editconference(request):
         except:
             eis.date_publication = datetime.datetime.strptime(
                 x, "%b. %d, %Y")
-    if (request.POST.get('dos3') != None and request.POST.get('dos3') != '' and request.POST.get('dos3') != 'None'):
-        x = request.POST.get('dos3')
+    if (request.POST.get('dos') != None and request.POST.get('dos') != '' and request.POST.get('dos') != 'None'):
+        x = request.POST.get('dos')
         if x[-10:] == ', midnight':
             x = x[0:-10]
         if x[:5] == "Sept." :
@@ -1079,17 +1061,14 @@ def editconference(request):
             eis.date_submission = datetime.datetime.strptime(
                 x, "%b. %d, %Y")
     eis.save()
-    page = int(request.POST.get('index3'))//10
-    page = page+1
-    url = "/profile/?page3="+str(page)
-    return redirect(url)
+    return JsonResponse({'success': True})
 
 
+@csrf_exempt
 def book_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
     eis = emp_published_books()
-    eis.user = request.user
     eis.pf_no = pf
     eis.p_type = request.POST.get('book_p_type')
     eis.title = request.POST.get('book_title')
@@ -1097,26 +1076,25 @@ def book_insert(request):
     eis.pyear = request.POST.get('book_year')
     eis.authors = request.POST.get('book_author')
     eis.save()
-    return redirect('/profile/?page2=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+
+@csrf_exempt
 def editbooks(request):
-    eis = emp_published_books.objects.get(pk=request.POST.get('bookspk2'))
+    eis = emp_published_books.objects.get(pk=request.POST.get('bookspk'))
     eis.p_type = request.POST.get('book_p_type')
     eis.title = request.POST.get('book_title')
     eis.publisher = request.POST.get('book_publisher')
-    eis.pyear = request.POST.get('book_')
+    eis.pyear = request.POST.get('book_year')
     eis.authors = request.POST.get('book_author')
     eis.save()
-    page = int(request.POST.get('index15'))//10
-    page = page+1
-    url = "/profile/?page2="+str(page)
-    return redirect(url)
+    return JsonResponse({'x' : 'Your data is updated '})
 
+@csrf_exempt
 def consym_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
     eis = emp_confrence_organised()
-    eis.user = request.user
     eis.pf_no = pf
     eis.name = request.POST.get('conference_name')
     eis.venue = request.POST.get('conference_venue')
@@ -1132,22 +1110,23 @@ def consym_insert(request):
         eis.role1 = "Any Other"
         eis.role2 = "Any Other"
     x = request.POST.get('conference_start_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     x = request.POST.get('conference_end_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     eis.save()
-    return redirect('/profile/?page13=1')
+    return JsonResponse({ "success": True})
 
+@csrf_exempt
 def editconsym(request):
     eis = emp_confrence_organised.objects.get(pk=request.POST.get('conferencepk2'))
     eis.name = request.POST.get('conference_name')
@@ -1164,36 +1143,32 @@ def editconsym(request):
         eis.role1 = "Any Other"
         eis.role2 = "Any Other"
     x = request.POST.get('conference_start_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     x = request.POST.get('conference_end_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y")  if x else None
     except:
-        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")  if x else None
     eis.save()
-    page = int(request.POST.get('index13'))//10
-    page = page+1
-    url = "/profile/?page13="+str(page)
+    return JsonResponse({'success': True})
 
-    return redirect('/profile/?page13=1')
-
+@csrf_exempt
 def event_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
-
-    if (request.POST.get('event_id')==None or request.POST.get('event_id')==""):
-        eis = emp_event_organized()
-    else:
-        eis = get_object_or_404(emp_event_organized, id=request.POST.get('event_id'))
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_event_organized()
+    # if (request.POST.get('event_id')==None or request.POST.get('event_id')==""):
+    #     eis = emp_event_organized()
+    # else:
+    #     eis = get_object_or_404(emp_event_organized, id=request.POST.get('event_id'))
     eis.pf_no = pf
-    eis.user = request.user
     eis.type = request.POST.get('event_type')
     if(eis.type == 'Any Other'):
         if(request.POST.get('myDIV')!= None or request.POST.get('myDIV') != ""):
@@ -1203,16 +1178,17 @@ def event_insert(request):
     eis.venue = request.POST.get('event_venue')
     eis.role = request.POST.get('event_role')
     try:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('event_start_date'), "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('event_start_date'), "%B %d, %Y") if request.POST.get('event_start_date') else None
     except:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('event_start_date'), "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('event_start_date'), "%b. %d, %Y") if request.POST.get('event_start_date') else None
     try:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('event_end_date'), "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(request.POST.get('event_end_date'), "%B %d, %Y") if request.POST.get('event_end_date') else None
     except:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('event_end_date'), "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(request.POST.get('event_end_date'), "%b. %d, %Y") if request.POST.get('event_end_date') else None
     eis.save()
-    return redirect('/profile/?page12=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def editevent(request):
     eis = emp_event_organized.objects.get(pk=request.POST.get('eventpk'))
 
@@ -1225,105 +1201,104 @@ def editevent(request):
     eis.venue = request.POST.get('event_venue')
     eis.role = request.POST.get('event_role')
     x = request.POST.get('event_start_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     try:
-        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     x = request.POST.get('event_end_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     try:
-        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
     eis.save()
-    page = int(request.POST.get('index12'))//10
-    page = page+1
-    url = "/profile/?page12="+str(page)
-    return redirect(url)
-
+    return JsonResponse({'success': True})
+@csrf_exempt
 def award_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
-
-    if (request.POST.get('ach_id')==None or request.POST.get('ach_id')==""):
-        eis = emp_achievement()
-    else:
-        eis = get_object_or_404(emp_achievement, id=request.POST.get('ach_id'))
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_achievement()
+    # if (request.POST.get('ach_id')==None or request.POST.get('ach_id')==""):
+    #     eis = emp_achievement()
+    # else:
+    #     eis = get_object_or_404(emp_achievement, id=request.POST.get('ach_id'))
     eis.pf_no = pf
-    eis.user = request.user
     eis.a_type = request.POST.get('type')
-    if(request.POST.get('a_day') != None and request.POST.get('a_day') != ""):
+    if(request.POST.get('a_day') != None and request.POST.get('a_day') != ""): 
         eis.a_day = request.POST.get('a_day')
     if(request.POST.get('a_month') != None and request.POST.get('a_month') != ""):
         eis.a_month = request.POST.get('a_month')
-    if(request.POST.get('a_year') != None and request.POST.get('a_year') != ""):
+    if(request.POST.get('a_year') != None and request.POST.get('a_year') != ""): 
         eis.a_year = request.POST.get('a_year')
     eis.details = request.POST.get('details')
-
     eis.save()
-    return redirect('/profile/?page14=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def talk_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
-
-    if (request.POST.get('lec_id')==None or request.POST.get('lec_id')==""):
-        eis = emp_expert_lectures()
-    else:
-        eis = get_object_or_404(emp_expert_lectures, id=request.POST.get('lec_id'))
-    eis.user = request.user
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_expert_lectures()
+    # if (request.POST.get('lec_id')==None or request.POST.get('lec_id')==""):
+    #     eis = emp_expert_lectures()
+    # else:
+    #     eis = get_object_or_404(emp_expert_lectures, id=request.POST.get('lec_id'))
     eis.pf_no = pf
     eis.l_type = request.POST.get('type')
     eis.place = request.POST.get('place')
     eis.title = request.POST.get('title')
     x = request.POST.get('l_date')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
             x = "Sep." + x[5:]
     try:
-        eis.l_date = datetime.datetime.strptime(x, "%B %d, %Y")
+        eis.l_date = datetime.datetime.strptime(x, "%B %d, %Y") if x else None
     except:
-        eis.l_date = datetime.datetime.strptime(x, "%b. %d, %Y")
+        eis.l_date = datetime.datetime.strptime(x, "%b. %d, %Y") if x else None
 
     eis.save()
-    return redirect('/profile/?page15=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def chaired_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
 
-    if (request.POST.get('ses_id')==None or request.POST.get('ses_id')==""):
-        eis = emp_session_chair()
-    else:
-        eis = get_object_or_404(emp_session_chair, id=request.POST.get('ses_id'))
-    eis.user = request.user
+    eis = emp_session_chair()
+
+    # if (request.POST.get('ses_id')==None or request.POST.get('ses_id')==""):
+    #     eis = emp_session_chair()
+    # else:
+    #     eis = get_object_or_404(emp_session_chair, id=request.POST.get('ses_id'))
     eis.pf_no = pf
     eis.event = request.POST.get('event')
     eis.name = request.POST.get('name')
     eis.s_year = request.POST.get('s_year')
     try:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%B %d, %Y") if request.POST.get('start') else None
     except:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%b. %d, %Y") if request.POST.get('start') else None
     try:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('end'), "%B %d, %Y")
+        eis.end_date = datetime.datetime.strptime(request.POST.get('end'), "%B %d, %Y") if request.POST.get('end') else None
     except:
-        eis.end_date = datetime.datetime.strptime(request.POST.get('end'), "%b. %d, %Y")
+        eis.end_date = datetime.datetime.strptime(request.POST.get('end'), "%b. %d, %Y") if request.POST.get('end') else None
 
     eis.save()
-    return redirect('eis:profile')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def keynote_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
 
-    if (request.POST.get('keyid')==None or request.POST.get('keyid')==""):
-        eis = emp_keynote_address()
-    else:
-        eis = get_object_or_404(emp_keynote_address, id=request.POST.get('keyid'))
-    eis.user = request.user
+    eis = emp_keynote_address()
+
+    # if (request.POST.get('keyid')==None or request.POST.get('keyid')==""):
+    #     eis = emp_keynote_address()
+    # else:
+    #     eis = get_object_or_404(emp_keynote_address, id=request.POST.get('keyid'))
     eis.pf_no = pf
     eis.type = request.POST.get('type')
     eis.name = request.POST.get('name')
@@ -1333,22 +1308,24 @@ def keynote_insert(request):
     eis.isbn_no = request.POST.get('isbn_no')
     eis.k_year = request.POST.get('k_year')
     try:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%B %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%B %d, %Y") if request.POST.get('start') else None
     except:
-        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%b. %d, %Y")
+        eis.start_date = datetime.datetime.strptime(request.POST.get('start'), "%b. %d, %Y") if request.POST.get('start') else None
 
     eis.save()
-    return redirect('eis:profile')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def project_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
 
-    if (request.POST.get('project_id')==None or request.POST.get('project_id')==""):
-        eis = emp_research_projects()
-    else:
-        eis = get_object_or_404(emp_research_projects, id=request.POST.get('project_id'))
-    eis.user = request.user
+    eis = emp_research_projects()
+
+    # if (request.POST.get('project_id')==None or request.POST.get('project_id')==""):
+    #     eis = emp_research_projects()
+    # else:
+    #     eis = get_object_or_404(emp_research_projects, id=request.POST.get('project_id'))
     eis.pf_no = pf
     eis.pi = request.POST.get('pi')
     eis.co_pi = request.POST.get('co_pi')
@@ -1357,7 +1334,7 @@ def project_insert(request):
     eis.funding_agency = request.POST.get('funding_agency')
     eis.status = request.POST.get('status')
     x = request.POST.get('start')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     if (request.POST.get('start') != None and request.POST.get('start') != '' and request.POST.get('start') != 'None'):
         try:
@@ -1365,7 +1342,7 @@ def project_insert(request):
         except:
             eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
     x = request.POST.get('end')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     if (request.POST.get('end') != None and request.POST.get('end') != '' and request.POST.get('end') != 'None'):
         try:
@@ -1373,7 +1350,7 @@ def project_insert(request):
         except:
             eis.finish_date = datetime.datetime.strptime(x, "%b. %d, %Y")
     x = request.POST.get('sub')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     if (request.POST.get('sub') != None and request.POST.get('sub') != '' and request.POST.get('sub') != 'None'):
         try:
@@ -1381,26 +1358,24 @@ def project_insert(request):
         except:
             eis.date_submission = datetime.datetime.strptime(x, "%b. %d, %Y")
     eis.save()
-    return redirect('/profile/?page4=1')
+    return JsonResponse({'success': True})
 
+@csrf_exempt
 def consult_insert(request):
-    print("=======================")
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
-    print(">>>>>>>.",user,type(user))
-    print(">>>>>>>",request.user,type(request.user))
-    if (request.POST.get('consultancy_id')==None or request.POST.get('consultancy_id')==""):
-        eis = emp_consultancy_projects()
-    else:
-        eis = get_object_or_404(emp_consultancy_projects, id=request.POST.get('consultancy_id'))
-    eis.user = request.user
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_consultancy_projects()
+    # if (request.POST.get('consultancy_id')==None or request.POST.get('consultancy_id')==""):
+    #     eis = emp_consultancy_projects()
+    # else:
+    #     eis = get_object_or_404(emp_consultancy_projects, id=request.POST.get('consultancy_id'))
     eis.pf_no = pf
     eis.consultants = request.POST.get('consultants')
     eis.client = request.POST.get('client')
     eis.title = request.POST.get('title')
     eis.financial_outlay = request.POST.get('financial_outlay')
     x = request.POST.get('start')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     if (request.POST.get('start') != None and request.POST.get('start') != '' and request.POST.get('start') != 'None'):
         try:
@@ -1408,7 +1383,7 @@ def consult_insert(request):
         except:
             eis.start_date = datetime.datetime.strptime(x, "%b. %d, %Y")
     x = request.POST.get('end')
-    if x[:5] == "Sept." :
+    if x and x[:5] == "Sept." :
         x = "Sep." + x[5:]
     if (request.POST.get('end') != None and request.POST.get('end') != '' and request.POST.get('end') != 'None'):
         try:
@@ -1416,17 +1391,18 @@ def consult_insert(request):
         except:
             eis.end_date = datetime.datetime.strptime(x, "%b. %d, %Y")
     eis.save()
-    return redirect('/profile/?page5=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def patent_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_patents()
 
-    if (request.POST.get('patent_id')==None or request.POST.get('patent_id')==""):
-        eis = emp_patents()
-    else:
-        eis = get_object_or_404(emp_patents, id=request.POST.get('patent_id'))
-    eis.user = request.user
+    # if (request.POST.get('patent_id')==None or request.POST.get('patent_id')==""):
+    #     eis = emp_patents()
+    # else:
+    #     eis = get_object_or_404(emp_patents, id=request.POST.get('patent_id'))
     eis.pf_no = pf
     eis.p_no = request.POST.get('p_no')
     eis.earnings = request.POST.get('earnings')
@@ -1435,20 +1411,22 @@ def patent_insert(request):
     eis.status = request.POST.get('status')
     eis.a_month = request.POST.get('month')
     eis.save()
-    return redirect('/profile/?page6=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
+@csrf_exempt
 def transfer_insert(request):
-    user = get_object_or_404(ExtraInfo, user=request.user)
-    pf = user.id
+    user = get_object_or_404(faculty_about, user_id=request.POST.get('user_id'))
+    pf = user.user_id
+    eis = emp_techtransfer()
 
-    if (request.POST.get('tech_id')==None or request.POST.get('tech_id')==""):
-        eis = emp_techtransfer()
-    else:
-        eis = get_object_or_404(emp_techtransfer, id=request.POST.get('tech_id'))
+    # if (request.POST.get('tech_id')==None or request.POST.get('tech_id')==""):
+    #     eis = emp_techtransfer()
+    # else:
+    #     eis = get_object_or_404(emp_techtransfer, id=request.POST.get('tech_id'))
     eis.pf_no = pf
     eis.details = request.POST.get('details')
     eis.save()
-    return redirect('/profile/?page7=1')
+    return JsonResponse({'x' : 'Your data is saved '})
 
 def achievements(request):
     if request.method == 'POST':
