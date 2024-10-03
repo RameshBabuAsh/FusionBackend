@@ -94,6 +94,8 @@ class Designation(models.Model):
 
     def __str__(self):
         return self.name
+    class Meta:
+        db_table = 'globals_designation'
 
 
 class DepartmentInfo(models.Model):
@@ -112,6 +114,9 @@ class DepartmentInfo(models.Model):
 
     def __str__(self):
         return 'department: {}'.format(self.name)
+    
+    class Meta:
+        db_table = 'globals_departmentinfo'
 
 
 class ExtraInfo(models.Model):
@@ -162,6 +167,9 @@ class ExtraInfo(models.Model):
 
     def __str__(self):
         return '{} - {}'.format(self.id, self.user.username)
+    
+    class Meta:
+        db_table = 'globals_extrainfo'
 
 
 class HoldsDesignation(models.Model):
@@ -189,6 +197,9 @@ class HoldsDesignation(models.Model):
 
     def __str__(self):
         return '{} - {}'.format(self.user.username, self.designation)
+    
+    class Meta:
+        db_table = 'globals_holdsdesignation'
 
 
 # TODO : ADD additional staff related fields when needed
@@ -207,6 +218,9 @@ class Staff(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
+    class Meta:
+        db_table = 'globals_staff'
 
 
 # TODO : ADD additional employee related fields when needed
@@ -227,6 +241,9 @@ class Faculty(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
+    class Meta:
+        db_table = 'globals_faculty'
 
 
 """ Feedback and bug report models start"""
@@ -255,6 +272,9 @@ class Feedback(models.Model):
 
     def __str__(self):
         return self.user.username + ": " + str(self.rating)
+    
+    class Meta:
+        db_table = 'globals_feedback'
 
 
 def Issue_image_directory(instance, filename):
@@ -274,6 +294,9 @@ class IssueImage(models.Model):
     '''
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=Issue_image_directory)
+
+    class Meta:
+        db_table = 'globals_issueimage'
 
 
 class Issue(models.Model):
@@ -310,6 +333,9 @@ class Issue(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
     added_on = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'globals_issue'
+
 
 """ End of feedback and bug report models"""
 
@@ -339,6 +365,9 @@ class ModuleAccess(models.Model):
 
     def __str__(self):
         return self.designation
+    
+    class Meta:
+        db_table = 'globals_moduleaccess'
     
 # end of application.globals.models ...................................................................................
 
@@ -523,6 +552,9 @@ class Project_Registration(models.Model):
 
     def __str__(self):
         return self.project_title
+    
+    class Meta:
+        db_table = 'office_module_project_registration'
 
 
 """
@@ -544,6 +576,9 @@ class Project_Extension(models.Model):
 
     def __str__(self):
         return str(self.project_id)
+    
+    class Meta:
+        db_table = 'office_module_project_extension'
 
 
 """
@@ -585,6 +620,9 @@ class Project_Closure(models.Model):
 
     def __str__(self):
         return str(self.project_id)
+    
+    class Meta:
+        db_table = 'office_module_project_closure'
 
 
 """
@@ -609,6 +647,9 @@ class Project_Reallocation(models.Model):
 
     def __str__(self):
         return str(self.project_id)
+    
+    class Meta:
+        db_table = 'office_module_project_reallocation'
 
 
 # Dean RSPC ends ....................................................................................................
@@ -631,6 +672,9 @@ class emp_visits(models.Model):
 
     def get_absolute_url(self):
         return reverse('eis:profile')
+    
+    class Meta:
+        db_table = 'eis_emp_visits'
 
 
 class emp_techtransfer(models.Model):
@@ -640,6 +684,9 @@ class emp_techtransfer(models.Model):
     date_entry = models.DateField(null=True, blank=True, default=datetime.datetime.now)
     start_date = models.DateField(null=True,blank=True)
     end_date = models.DateField(null=True,blank=True)
+
+    class Meta:
+        db_table = 'eis_emp_techtransfer'
 
 
 class emp_session_chair(models.Model):
@@ -662,6 +709,9 @@ class emp_session_chair(models.Model):
 
     def __str__(self):
         return 'PF No.: {}   Name: {}'.format(self.pf_no,self.name)
+    
+    class Meta:
+        db_table = 'eis_emp_session_chair'
 
 
 class emp_research_projects(models.Model):
@@ -687,6 +737,9 @@ class emp_research_projects(models.Model):
 
     def __str__(self):
         return 'PF No.: {}   pi: {}  title: {}'.format(self.pf_no,self.pi, self.title)
+    
+    class Meta:
+        db_table = 'eis_emp_research_projects'
 
 
 class emp_research_papers(models.Model):
@@ -738,6 +791,9 @@ class emp_research_papers(models.Model):
 
     def __str__(self):
         return 'PF No.: {}   Author: {}  Title: {}'.format(self.pf_no,self.authors, self.title_paper)
+    
+    class Meta:
+        db_table = 'eis_emp_research_papers'
 
 
 class emp_published_books(models.Model):
@@ -763,6 +819,9 @@ class emp_published_books(models.Model):
     
     def __str__(self):
         return 'PF No.: {}   Type: {}  Title: {}'.format(self.pf_no,self.p_type, self.title)
+    
+    class Meta:
+        db_table = 'eis_emp_published_books'
 
 
 class emp_patents(models.Model):
@@ -791,6 +850,9 @@ class emp_patents(models.Model):
     end_date = models.DateField(null=True,blank=True)
     def __str__(self):
         return 'PF No.: {}   Status: {}  Title: {}'.format(self.pf_no,self.status, self.title)
+    
+    class Meta:
+        db_table = 'eis_emp_patents'
 
 
 class emp_mtechphd_thesis(models.Model):
@@ -824,6 +886,9 @@ class emp_mtechphd_thesis(models.Model):
 
     def __str__(self):
         return 'PF No.: {}   Supervisor: {}  Title: {}'.format(self.pf_no,self.supervisors, self.title)
+    
+    class Meta:
+        db_table = 'eis_emp_mtechphd_thesis'
 
 
 class emp_keynote_address(models.Model):
@@ -853,6 +918,9 @@ class emp_keynote_address(models.Model):
 
     def __str__(self):
         return 'PF No.: {}   Name: {}  Title: {}'.format(self.pf_no,self.name, self.title)
+    
+    class Meta:
+        db_table = 'eis_emp_keynote_address'
 
 
 class emp_expert_lectures(models.Model):
@@ -878,6 +946,9 @@ class emp_expert_lectures(models.Model):
 
     def __str__(self):
         return 'PF No.: {}  Title: {}'.format(self.pf_no, self.title)
+    
+    class Meta:
+        db_table = 'eis_emp_expert_lectures'
 
 
 class emp_event_organized(models.Model):
@@ -906,6 +977,9 @@ class emp_event_organized(models.Model):
 
     def __str__(self):
         return 'PF No.: {}  Name: {}'.format(self.pf_no, self.name)
+    
+    class Meta:
+        db_table = 'eis_emp_event_organized'
 
 
 class emp_consultancy_projects(models.Model):
@@ -928,6 +1002,9 @@ class emp_consultancy_projects(models.Model):
     remarks = models.CharField(max_length=1000, null=True, blank=True)
     def __str__(self):
         return 'PF No.: {}  Consultants: {}'.format(self.pf_no, self.consultants)
+    
+    class Meta:
+        db_table = 'eis_emp_consultancy_projects'
 
 
 class emp_confrence_organised(models.Model):
@@ -958,6 +1035,9 @@ class emp_confrence_organised(models.Model):
 
     def __str__(self):
         return 'PF No.: {}  Name: {}'.format(self.pf_no, self.name)
+    
+    class Meta:
+        db_table = 'eis_emp_confrence_organised'
 
 
 class emp_achievement(models.Model):
@@ -991,6 +1071,9 @@ class emp_achievement(models.Model):
 
     def get_absolute_url(self):
         return reverse('eis:profile')
+    
+    class Meta:
+        db_table = 'eis_emp_achievement'
 
 
 class faculty_about(models.Model):
@@ -1006,3 +1089,6 @@ class faculty_about(models.Model):
 
     def __str__(self):
         return str(self.user)
+    
+    class Meta:
+        db_table = 'eis_faculty_about'
